@@ -1,0 +1,47 @@
+version: "3"
+services:
+  db:
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MARIADB_AUTO_UPGRADE: 1
+    container_name: ${MYSQL_name}
+    image: mariadb:lts
+    restart: always
+    ports:
+      - 3306:3306
+    expose:
+      - 3306
+    volumes:
+      - ./dbinit:/docker-entrypoint-initdb.d
+      # MySQL data that we want to migrate
+      - dbdata:/var/lib/mysql
+  
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+
+  nodejs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nodejs_container
+    restart: always
+    ports:
+      - 8000:3000
+    expose:
+      - 3000
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_DATABASE}
+
+volumes:
+  dbdata: {}
+
